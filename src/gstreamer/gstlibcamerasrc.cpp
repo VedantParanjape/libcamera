@@ -357,15 +357,10 @@ gst_libcamera_src_task_enter(GstTask *task, [[maybe_unused]] GThread *thread,
 
 	GST_DEBUG_OBJECT(self, "Streaming thread has started");
 
-	gint stream_id_num = 0;
 	StreamRoles roles;
 	for (GstPad *srcpad : state->srcpads_) {
 		/* Create stream-id and push stream-start. */
-		g_autofree gchar *stream_id_intermediate = g_strdup_printf("%i%i", state->group_id_, stream_id_num++);
-		g_autofree gchar *stream_id = gst_pad_create_stream_id(srcpad, GST_ELEMENT(self), stream_id_intermediate);
-		GstEvent *event = gst_event_new_stream_start(stream_id);
-		gst_event_set_group_id(event, state->group_id_);
-		gst_pad_push_event(srcpad, event);
+		gst_libcamera_pad_push_stream_start(srcpad, state->group_id_);
 
 		/* Collect the streams roles for the next iteration. */
 		roles.push_back(gst_libcamera_pad_get_role(srcpad));

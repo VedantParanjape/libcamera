@@ -20,6 +20,7 @@ struct _GstLibcameraPad {
 	GstLibcameraPool *pool;
 	GQueue pending_buffers;
 	GstClockTime latency;
+	gint stream_id_num;
 };
 
 enum {
@@ -81,6 +82,7 @@ static void
 gst_libcamera_pad_init(GstLibcameraPad *self)
 {
 	GST_PAD_QUERYFUNC(self) = gst_libcamera_pad_query;
+	self->stream_id_num = 0;
 }
 
 static GType
@@ -153,6 +155,23 @@ gst_libcamera_pad_get_stream(GstPad *pad)
 		return gst_libcamera_pool_get_stream(self->pool);
 
 	return nullptr;
+}
+
+void
+gst_libcamera_pad_push_stream_start(GstPad *pad, const guint group_id)
+{
+	auto *self = GST_LIBCAMERA_PAD(pad);	
+	{
+		GLibLocker lock(GST_OBJECT(self));
+		self->stream_id_num++;
+	}
+
+	g_autoptr(GstElement) element = gst_pad_get_parent_element(pad);
+	g_autofree gchar *stream_id_intermediate = g_strdup_printf("%i%i", group_id, self->stream_id_num);
+	g_autofree gchar *stream_id = gst_pad_create_stream_id(pad, element, stream_id_intermediate);
+	GstEvent *event = gst_event_new_stream_start(stream_id);
+	gst_event_set_group_id(event, group_id);
+	gst_pad_push_event(pad, event);
 }
 
 void

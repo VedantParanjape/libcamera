@@ -26,6 +26,8 @@ void gst_libcamera_pad_set_pool(GstPad *pad, GstLibcameraPool *pool);
 
 libcamera::Stream *gst_libcamera_pad_get_stream(GstPad *pad);
 
+void gst_libcamera_pad_push_stream_start(GstPad *pad, const guint group_id);
+
 void gst_libcamera_pad_queue_buffer(GstPad *pad, GstBuffer *buffer);
 
 GstFlowReturn gst_libcamera_pad_push_pending(GstPad *pad);
